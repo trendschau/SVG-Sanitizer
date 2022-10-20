@@ -13,91 +13,87 @@
 
 class SvgSanitizer {
 	
-	//private $remoteHref = false;		// Check if hrefs in XML can goto remote locations
 	private $xmlDoc;				// PHP XML DOMDocument
 
 	// defines the whitelist of elements and attributes allowed.
-	private static $whitelist = array(
-		"a"=>array("class", "clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "id", "mask", "opacity", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "transform", "href", "xlink:href", "xlink:title"),
-		"circle"=>array("class", "clip-path", "clip-rule", "cx", "cy", "fill", "fill-opacity", "fill-rule", "filter", "id", "mask", "opacity", "r", "requiredFeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "transform"),
-		"clipPath"=>array("class", "clipPathUnits", "id"),
-		"defs"=>array(),
-	    "style" =>array("type"),
-		"desc"=>array(),
-		"ellipse"=>array("class", "clip-path", "clip-rule", "cx", "cy", "fill", "fill-opacity", "fill-rule", "filter", "id", "mask", "opacity", "requiredFeatures", "rx", "ry", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "transform"),
-		"feGaussianBlur"=>array("class", "color-interpolation-filters", "id", "requiredFeatures", "stdDeviation"),
-		"filter"=>array("class", "color-interpolation-filters", "filterRes", "filterUnits", "height", "id", "primitiveUnits", "requiredFeatures", "width", "x", "xlink:href", "y"),
-		"foreignObject"=>array("class", "font-size", "height", "id", "opacity", "requiredFeatures", "style", "transform", "width", "x", "y"),
-		"g"=>array("class", "clip-path", "clip-rule", "id", "display", "fill", "fill-opacity", "fill-rule", "filter", "mask", "opacity", "requiredFeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "transform", "font-family", "font-size", "font-style", "font-weight", "text-anchor"),
-		"image"=>array("class", "clip-path", "clip-rule", "filter", "height", "id", "mask", "opacity", "requiredFeatures", "style", "systemLanguage", "transform", "width", "x", "xlink:href", "xlink:title", "y"),
-		"line"=>array("class", "clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "id", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "requiredFeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "transform", "x1", "x2", "y1", "y2"),
-		"linearGradient"=>array("class", "id", "gradientTransform", "gradientUnits", "requiredFeatures", "spreadMethod", "systemLanguage", "x1", "x2", "xlink:href", "y1", "y2"),
-		"marker"=>array("id", "class", "markerHeight", "markerUnits", "markerWidth", "orient", "preserveAspectRatio", "refX", "refY", "systemLanguage", "viewBox"),
-		"mask"=>array("class", "height", "id", "maskContentUnits", "maskUnits", "width", "x", "y"),
-		"metadata"=>array("class", "id"),
-		"path"=>array("class", "clip-path", "clip-rule", "d", "fill", "fill-opacity", "fill-rule", "filter", "id", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "requiredFeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "transform"),
-		"pattern"=>array("class", "height", "id", "patternContentUnits", "patternTransform", "patternUnits", "requiredFeatures", "style", "systemLanguage", "viewBox", "width", "x", "xlink:href", "y"),
-		"polygon"=>array("class", "clip-path", "clip-rule", "id", "fill", "fill-opacity", "fill-rule", "filter", "id", "class", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "points", "requiredFeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "transform"),
-		"polyline"=>array("class", "clip-path", "clip-rule", "id", "fill", "fill-opacity", "fill-rule", "filter", "marker-end", "marker-mid", "marker-start", "mask", "opacity", "points", "requiredFeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "transform"),
-		"radialGradient"=>array("class", "cx", "cy", "fx", "fy", "gradientTransform", "gradientUnits", "id", "r", "requiredFeatures", "spreadMethod", "systemLanguage", "xlink:href"),
-		"rect"=>array("class", "clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "height", "id", "mask", "opacity", "requiredFeatures", "rx", "ry", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "transform", "width", "x", "y"),
-		"stop"=>array("class", "id", "offset", "requiredFeatures", "stop-color", "stop-opacity", "style", "systemLanguage"),
-		"svg"=>array("class", "clip-path", "clip-rule", "filter", "id", "height", "mask", "preserveAspectRatio", "requiredFeatures", "style", "systemLanguage", "viewBox", "width", "x", "xmlns", "xmlns:se", "xmlns:xlink", "y"),
-		"switch"=>array("class", "id", "requiredFeatures", "systemLanguage"),
-		"symbol"=>array("class", "fill", "fill-opacity", "fill-rule", "filter", "font-family", "font-size", "font-style", "font-weight", "id", "opacity", "preserveAspectRatio", "requiredFeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "transform", "viewBox"),
-		"text"=>array("class", "clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "font-family", "font-size", "font-style", "font-weight", "id", "mask", "opacity", "requiredFeatures", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "text-anchor", "transform", "x", "xml:space", "y"),
-		"textPath"=>array("class", "id", "method", "requiredFeatures", "spacing", "startOffset", "style", "systemLanguage", "transform", "xlink:href"),
-		"title"=>array(),
-		"tspan"=>array("class", "clip-path", "clip-rule", "dx", "dy", "fill", "fill-opacity", "fill-rule", "filter", "font-family", "font-size", "font-style", "font-weight", "id", "mask", "opacity", "requiredFeatures", "rotate", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "systemLanguage", "text-anchor", "textLength", "transform", "x", "xml:space", "y"),
-		"use"=>array("class", "clip-path", "clip-rule", "fill", "fill-opacity", "fill-rule", "filter", "height", "id", "mask", "stroke", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "style", "transform", "width", "x", "xlink:href", "y"),
-	);
+	private static $whitelist = [
+		'a' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'id' => true, 'mask' => true, 'opacity' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true, 'href' => true, 'xlink:href' => true, 'xlink:title' => true],
+		'circle' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'cx' => true, 'cy' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'id' => true, 'mask' => true, 'opacity' => true, 'r' => true, 'requiredFeatures' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true],
+		'clipPath' => ['class' => true, 'clipPathUnits' => true, 'id' => true],
+		'defs' => [],
+	    'style' => ['type' => true],
+		'desc' => [],
+		'ellipse' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'cx' => true, 'cy' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'id' => true, 'mask' => true, 'opacity' => true, 'requiredFeatures' => true, 'rx' => true, 'ry' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true],
+		'feGaussianBlur' => ['class' => true, 'color-interpolation-filters' => true, 'id' => true, 'requiredFeatures' => true, 'stdDeviation' => true],
+		'filter' => ['class' => true, 'color-interpolation-filters' => true, 'filterRes' => true, 'filterUnits' => true, 'height' => true, 'id' => true, 'primitiveUnits' => true, 'requiredFeatures' => true, 'width' => true, 'x' => true, 'xlink:href' => true, 'y' => true],
+		'foreignObject' => ['class' => true, 'font-size' => true, 'height' => true, 'id' => true, 'opacity' => true, 'requiredFeatures' => true, 'style' => true, 'transform' => true, 'width' => true, 'x' => true, 'y' => true],
+		'g' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'id' => true, 'display' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'mask' => true, 'opacity' => true, 'requiredFeatures' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true, 'font-family' => true, 'font-size' => true, 'font-style' => true, 'font-weight' => true, 'text-anchor' => true],
+		'image' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'filter' => true, 'height' => true, 'id' => true, 'mask' => true, 'opacity' => true, 'requiredFeatures' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true, 'width' => true, 'x' => true, 'xlink:href' => true, 'xlink:title' => true, 'y' => true],
+		'line' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'id' => true, 'marker-end' => true, 'marker-mid' => true, 'marker-start' => true, 'mask' => true, 'opacity' => true, 'requiredFeatures' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true, 'x1' => true, 'x2' => true, 'y1' => true, 'y2' => true],
+		'linearGradient' => ['class' => true, 'id' => true, 'gradientTransform' => true, 'gradientUnits' => true, 'requiredFeatures' => true, 'spreadMethod' => true, 'systemLanguage' => true, 'x1' => true, 'x2' => true, 'xlink:href' => true, 'y1' => true, 'y2' => true],
+		'marker' => ['id' => true, 'class' => true, 'markerHeight' => true, 'markerUnits' => true, 'markerWidth' => true, 'orient' => true, 'preserveAspectRatio' => true, 'refX' => true, 'refY' => true, 'systemLanguage' => true, 'viewBox' => true],
+		'mask' => ['class' => true, 'height' => true, 'id' => true, 'maskContentUnits' => true, 'maskUnits' => true, 'width' => true, 'x' => true, 'y' => true],
+		'metadata' => ['class' => true, 'id' => true],
+		'path' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'd' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'id' => true, 'marker-end' => true, 'marker-mid' => true, 'marker-start' => true, 'mask' => true, 'opacity' => true, 'requiredFeatures' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true],
+		'pattern' => ['class' => true, 'height' => true, 'id' => true, 'patternContentUnits' => true, 'patternTransform' => true, 'patternUnits' => true, 'requiredFeatures' => true, 'style' => true, 'systemLanguage' => true, 'viewBox' => true, 'width' => true, 'x' => true, 'xlink:href' => true, 'y' => true],
+		'polygon' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'id' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'id' => true, 'class' => true, 'marker-end' => true, 'marker-mid' => true, 'marker-start' => true, 'mask' => true, 'opacity' => true, 'points' => true, 'requiredFeatures' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true],
+		'polyline' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'id' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'marker-end' => true, 'marker-mid' => true, 'marker-start' => true, 'mask' => true, 'opacity' => true, 'points' => true, 'requiredFeatures' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true],
+		'radialGradient' => ['class' => true, 'cx' => true, 'cy' => true, 'fx' => true, 'fy' => true, 'gradientTransform' => true, 'gradientUnits' => true, 'id' => true, 'r' => true, 'requiredFeatures' => true, 'spreadMethod' => true, 'systemLanguage' => true, 'xlink:href' => true],
+		'rect' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'height' => true, 'id' => true, 'mask' => true, 'opacity' => true, 'requiredFeatures' => true, 'rx' => true, 'ry' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true, 'width' => true, 'x' => true, 'y' => true],
+		'stop' => ['class' => true, 'id' => true, 'offset' => true, 'requiredFeatures' => true, 'stop-color' => true, 'stop-opacity' => true, 'style' => true, 'systemLanguage' => true],
+		'svg' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'filter' => true, 'id' => true, 'height' => true, 'mask' => true, 'preserveAspectRatio' => true, 'requiredFeatures' => true, 'style' => true, 'systemLanguage' => true, 'viewBox' => true, 'width' => true, 'x' => true, 'xmlns' => true, 'xmlns:se' => true, 'xmlns:xlink' => true, 'y' => true],
+		'switch' => ['class' => true, 'id' => true, 'requiredFeatures' => true, 'systemLanguage' => true],
+		'symbol' => ['class' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'font-family' => true, 'font-size' => true, 'font-style' => true, 'font-weight' => true, 'id' => true, 'opacity' => true, 'preserveAspectRatio' => true, 'requiredFeatures' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true, 'viewBox' => true],
+		'text' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'font-family' => true, 'font-size' => true, 'font-style' => true, 'font-weight' => true, 'id' => true, 'mask' => true, 'opacity' => true, 'requiredFeatures' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'text-anchor' => true, 'transform' => true, 'x' => true, 'xml:space' => true, 'y' => true],
+		'textPath' => ['class' => true, 'id' => true, 'method' => true, 'requiredFeatures' => true, 'spacing' => true, 'startOffset' => true, 'style' => true, 'systemLanguage' => true, 'transform' => true, 'xlink:href' => true],
+		'title' => [],
+		'tspan' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'dx' => true, 'dy' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'font-family' => true, 'font-size' => true, 'font-style' => true, 'font-weight' => true, 'id' => true, 'mask' => true, 'opacity' => true, 'requiredFeatures' => true, 'rotate' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'systemLanguage' => true, 'text-anchor' => true, 'textLength' => true, 'transform' => true, 'x' => true, 'xml:space' => true, 'y' => true],
+		'use' => ['class' => true, 'clip-path' => true, 'clip-rule' => true, 'fill' => true, 'fill-opacity' => true, 'fill-rule' => true, 'filter' => true, 'height' => true, 'id' => true, 'mask' => true, 'stroke' => true, 'stroke-dasharray' => true, 'stroke-dashoffset' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'stroke-miterlimit' => true, 'stroke-opacity' => true, 'stroke-width' => true, 'style' => true, 'transform' => true, 'width' => true, 'x' => true, 'xlink:href' => true, 'y' => true],
+	];
 
 	function __construct() {
 		$this->xmlDoc = new DOMDocument();
 		$this->xmlDoc->preserveWhiteSpace = false;
 	}
 
-	// load XML SVG
+	//Load the SVG data from a file
 	function load($file) {
 		$this->xmlDoc->load($file);
 	}
-
-	function sanitize()
-	{
-		// all elements in xml doc
+	
+	//Remove any elements from the XML that are unrelated to SVGs
+	function sanitize() {
+		
+		//Get every element in the document, and loop through them all
 		$allElements = $this->xmlDoc->getElementsByTagName("*");
 
-		// loop through all elements
-		for($i = 0; $i < $allElements->length; $i++)
-		{
+		for ($i = 0; $i < $allElements->length; $i++) {
 			$currentNode = $allElements->item($i);
-
-
-			// array of allowed attributes in specific element
-			$whitelist_attr_arr = self::$whitelist[$currentNode->tagName];
-
-			// does element exist in whitelist?
-		    if(isset($whitelist_attr_arr)) {
-
-		    		for($x = 0; $x < $currentNode->attributes->length; $x++) {
-
-		    			// get attributes name
-		    			$attrName = $currentNode->attributes->item($x)->name;
-
-		    			// check if attribute isn't in whiltelist
-		    			if(!in_array($attrName,$whitelist_attr_arr)) {
-		    				$currentNode->removeAttribute($attrName);
-		    				$x--;
-		    			}	
-		    		}	
-		    }
-
-		    // else remove element
-		    else {
-
+			
+			//Remove any elements not on the whitelist
+			if (!isset(self::$whitelist[$currentNode->tagName])) {
 		        $currentNode->parentNode->removeChild($currentNode);
 		        $i--;
-
+		    
+		    } else {
+				$attributesWhitelist = self::$whitelist[$currentNode->tagName];
+				$attributesToRemove = [];
+				
+				//If the element is allowed, loop through checking its attributes v.s. the attributes allowed for that element
+				for ($j = 0; $j < $currentNode->attributes->length; $j++) {
+					$attrName = $currentNode->attributes->item($j)->name;
+					
+					if (!isset($attributesWhitelist[$attrName])) {
+						$attributesToRemove[] = $attrName;
+					}
+				}
+				
+				//Remove any blocked attributes
+				if (!empty($attributesToRemove)) {
+					foreach ($attributesToRemove as $attrName) {
+						$currentNode->removeAttribute($attrName);
+					}
+				}
 		    }	
 		}
 	}
@@ -106,6 +102,9 @@ class SvgSanitizer {
 		$this->xmlDoc->formatOutput = true;
 		return($this->xmlDoc->saveXML());
 	}
-}
 
-?>
+	function save($file) {
+		$this->xmlDoc->formatOutput = true;
+		return($this->xmlDoc->save($file));
+	}
+}

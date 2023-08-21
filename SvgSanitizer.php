@@ -11,6 +11,8 @@
  *  @package svgsanitizer
  */
 
+namespace Utilities\SvgSanitizer;
+
 class SvgSanitizer {
 	
 	private $xmlDoc;				// PHP XML DOMDocument
